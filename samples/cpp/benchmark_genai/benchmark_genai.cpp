@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) try {
     ("n,num_iter", "Number of iterations", cxxopts::value<size_t>()->default_value(std::to_string(3)))
     ("mt,max_new_tokens", "Maximal number of new tokens", cxxopts::value<size_t>()->default_value(std::to_string(20)))
     ("d,device", "device", cxxopts::value<std::string>()->default_value("CPU"))
+    ("pc,perf_count", "Enable performance counters")
     ("h,help", "Print usage");
 
     cxxopts::ParseResult result;
@@ -35,11 +36,18 @@ int main(int argc, char* argv[]) try {
     std::string device = result["device"].as<std::string>();
     size_t num_warmup = result["num_warmup"].as<size_t>();
     size_t num_iter = result["num_iter"].as<size_t>();
-  
+
     ov::genai::GenerationConfig config;
     config.max_new_tokens = result["max_new_tokens"].as<size_t>();
 
-    ov::genai::LLMPipeline pipe(model_path, device);
+    ov::AnyMap sch_config_map;
+    
+    if (result.count("perf_count")) {
+        sch_config_map["PERF_COUNT"] = "YES";
+        std::cout << "Perf Count Enabled";
+    }
+
+    ov::genai::LLMPipeline pipe(model_path, device, sch_config_map);
     
     for (size_t i = 0; i < num_warmup; i++)
         pipe.generate(prompt, config);

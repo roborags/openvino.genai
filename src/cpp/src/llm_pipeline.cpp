@@ -73,6 +73,7 @@ public:
     std::optional<int32_t> m_selected_beam = std::nullopt;
     ChatHistory m_history;
     std::string m_templated_chat_history = "";
+    bool is_perf_ctr_enabled = false;
 
     StatefulLLMPipeline(
         const ov::InferRequest& request,
@@ -99,6 +100,10 @@ public:
         // If eos_token_id was not provided, take value
         if (m_generation_config.eos_token_id == -1)
             m_generation_config.set_eos_token_id(m_tokenizer.get_eos_token_id());
+
+        if (plugin_config.find("PERF_COUNT") != plugin_config.end()) {
+            is_perf_ctr_enabled = true;
+        }
     }
 
     StatefulLLMPipeline(
@@ -106,7 +111,7 @@ public:
         const std::string& device, 
         const ov::AnyMap& plugin_config
     ): StatefulLLMPipeline{model_path, Tokenizer(model_path.string()), device, plugin_config} {}
-    
+
     DecodedResults generate(
         StringInputs inputs,
         OptionalGenerationConfig generation_config,
@@ -175,6 +180,10 @@ public:
         // Added tokenization/detokenization times, and updated generate duration, need to reevaluate statistics.
         decoded_results.perf_metrics.m_evaluated = false;
         decoded_results.perf_metrics.evaluate_statistics(start_time);
+
+        if (is_perf_ctr_enabled) {
+            print_detailed_perf_counters(m_model_runner.get_profiling_info(), std::cout);
+        }
         return decoded_results;
     }
 
@@ -312,6 +321,70 @@ public:
             m_templated_chat_history = "";
         }
     }
+
+    void print_detailed_perf_counters (std::vector<ov::ProfilingInfo> performanceData, std::ostream& stream) {
+        std::chrono::microseconds totalTime = std::chrono::microseconds::zero();
+        std::chrono::microseconds totalTimeCpu = std::chrono::microseconds::zero();
+
+        stream << std::endl << "Performance counts:" << std::endl << std::endl;
+        int precision = 3;
+
+        std::ios::fmtflags fmt(std::cout.flags());
+        stream << std::fixed << std::setprecision(precision);
+
+        for (const auto& it : performanceData) {
+            if (it.real_time.count() > 0) {
+                totalTime += it.real_time;
+            }
+            if (it.cpu_time.count() > 0) {
+                totalTimeCpu += it.cpu_time;
+            }
+
+            std::string toPrint(it.node_name);
+            const int maxPrintLength = 20;
+
+            if (it.node_name.length() >= maxPrintLength) {
+                toPrint = it.node_name.substr(0, maxPrintLength - 5);
+                toPrint += "...";
+            }
+
+            stream << std::setw(maxPrintLength) << std::left << toPrint << " ";
+            switch (it.status) {
+            case ov::ProfilingInfo::Status::EXECUTED:
+                stream << std::setw(21) << std::left << "EXECUTED ";
+                break;
+            case ov::ProfilingInfo::Status::NOT_RUN:
+                stream << std::setw(21) << std::left << "NOT_RUN ";
+                break;
+            case ov::ProfilingInfo::Status::OPTIMIZED_OUT:
+                stream << std::setw(21) << std::left << "OPTIMIZED_OUT ";
+                break;
+            }
+
+            stream << "layerType: ";
+            if (it.node_type.length() >= maxPrintLength) {
+                stream << std::setw(maxPrintLength) << std::left << it.node_type.substr(0, maxPrintLength - 3) + "..."
+                       << " ";
+            } else {
+                stream << std::setw(maxPrintLength) << std::left << it.node_type << " ";
+            }
+
+            stream << std::setw(30) << std::left << "execType: " + std::string(it.exec_type) << " ";
+            stream << "realTime (ms): " << std::setw(10) << std::left << std::fixed << std::setprecision(3)
+                   << it.real_time.count() / 1000.0 << " ";
+            stream << "cpuTime (ms): " << std::setw(10) << std::left << std::fixed << std::setprecision(3)
+                   << it.cpu_time.count() / 1000.0 << " ";
+            stream << std::endl;
+        }
+        stream << std::setw(25) << std::left << "Total time: " << std::fixed << std::setprecision(3)
+               << totalTime.count() / 1000.0 << " milliseconds" << std::endl;
+        stream << std::setw(25) << std::left << "Total CPU time: " << std::fixed << std::setprecision(3)
+               << totalTimeCpu.count() / 1000.0 << " milliseconds" << std::endl;
+        stream << std::endl;
+
+        stream.flags(fmt);
+    }
+
 };
 
 DecodedResults LLMPipeline::generate(

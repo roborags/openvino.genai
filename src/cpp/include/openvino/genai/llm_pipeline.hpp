@@ -246,6 +246,15 @@ public:
     * Turns off keeping KV cache between generate calls.
     */
     void finish_chat();
+
+    /**
+     * @brief Print detailed perf counters
+    */
+    void print_detailed_perf_counters(
+        const std::vector<ov::ProfilingInfo>& performanceData,
+        std::ostream& stream
+    );
+
 private:
     std::unique_ptr<LLMPipelineImplBase> m_pimpl;
 };
