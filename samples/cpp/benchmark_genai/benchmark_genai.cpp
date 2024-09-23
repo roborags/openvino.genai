@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) try {
     
     if (result.count("perf_count")) {
         sch_config_map["PERF_COUNT"] = "YES";
-        std::cout << "Perf Count Enabled";
+        std::cout << "Perf Count Enabled" << std::endl;
     }
 
     ov::genai::LLMPipeline pipe(model_path, device, sch_config_map);

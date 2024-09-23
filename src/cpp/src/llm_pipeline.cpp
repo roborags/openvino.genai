@@ -15,6 +15,8 @@
 #include "llm_pipeline_static.hpp"
 #include "utils.hpp"
 #include "text_callback_streamer.hpp"
+#include <chrono>
+#include <ctime>
 
 namespace {
 
@@ -322,15 +324,29 @@ public:
         }
     }
 
+    std::string getTimestamp() {
+        auto now = std::chrono::system_clock::now();
+        std::time_t time = std::chrono::system_clock::to_time_t(now);
+        std::tm* tm = std::localtime(&time);
+
+        char buffer[20];
+        std::strftime(buffer, sizeof(buffer), "%Y%m%d_%H%M%S", tm);
+
+        return std::string(buffer);
+    }
+    
     void print_detailed_perf_counters (std::vector<ov::ProfilingInfo> performanceData, std::ostream& stream) {
         std::chrono::microseconds totalTime = std::chrono::microseconds::zero();
         std::chrono::microseconds totalTimeCpu = std::chrono::microseconds::zero();
 
-        stream << std::endl << "Performance counts:" << std::endl << std::endl;
-        int precision = 3;
+        std::string filename = "perf_counter_" + getTimestamp() + ".csv";
+        std::ofstream file(filename);
+        if (file.is_open()) {
+            // Write CSV header
+            file << "Node Name, Node Type, Status, Execution Type, Real Time (ms), CPU Time (ms)" << std::endl;
+        }
 
-        std::ios::fmtflags fmt(std::cout.flags());
-        stream << std::fixed << std::setprecision(precision);
+        std::string op_status;
 
         for (const auto& it : performanceData) {
             if (it.real_time.count() > 0) {
@@ -340,51 +356,31 @@ public:
                 totalTimeCpu += it.cpu_time;
             }
 
-            std::string toPrint(it.node_name);
-            const int maxPrintLength = 20;
-
-            if (it.node_name.length() >= maxPrintLength) {
-                toPrint = it.node_name.substr(0, maxPrintLength - 5);
-                toPrint += "...";
-            }
-
-            stream << std::setw(maxPrintLength) << std::left << toPrint << " ";
             switch (it.status) {
-            case ov::ProfilingInfo::Status::EXECUTED:
-                stream << std::setw(21) << std::left << "EXECUTED ";
-                break;
-            case ov::ProfilingInfo::Status::NOT_RUN:
-                stream << std::setw(21) << std::left << "NOT_RUN ";
-                break;
-            case ov::ProfilingInfo::Status::OPTIMIZED_OUT:
-                stream << std::setw(21) << std::left << "OPTIMIZED_OUT ";
-                break;
+                case ov::ProfilingInfo::Status::EXECUTED:
+                    op_status = "EXECUTED";
+                    break;
+                case ov::ProfilingInfo::Status::NOT_RUN:
+                    op_status = "NOT_RUN ";
+                    break;
+                case ov::ProfilingInfo::Status::OPTIMIZED_OUT:
+                    op_status = "OPTIMIZED_OUT ";
+                    break;
             }
 
-            stream << "layerType: ";
-            if (it.node_type.length() >= maxPrintLength) {
-                stream << std::setw(maxPrintLength) << std::left << it.node_type.substr(0, maxPrintLength - 3) + "..."
-                       << " ";
-            } else {
-                stream << std::setw(maxPrintLength) << std::left << it.node_type << " ";
-            }
-
-            stream << std::setw(30) << std::left << "execType: " + std::string(it.exec_type) << " ";
-            stream << "realTime (ms): " << std::setw(10) << std::left << std::fixed << std::setprecision(3)
-                   << it.real_time.count() / 1000.0 << " ";
-            stream << "cpuTime (ms): " << std::setw(10) << std::left << std::fixed << std::setprecision(3)
-                   << it.cpu_time.count() / 1000.0 << " ";
-            stream << std::endl;
+            // file << "Node Name, Node Type, Status, Execution Type, Real Time (ms), CPU Time (ms)" << std::endl;
+            file << std::string(it.node_name) << "," << std::string(it.node_type) << "," << op_status << "," 
+                    << std::string(it.exec_type) << "," << it.real_time.count() / 1000.0 << "," 
+                        << it.cpu_time.count() / 1000.0 << std::endl;
         }
-        stream << std::setw(25) << std::left << "Total time: " << std::fixed << std::setprecision(3)
-               << totalTime.count() / 1000.0 << " milliseconds" << std::endl;
-        stream << std::setw(25) << std::left << "Total CPU time: " << std::fixed << std::setprecision(3)
-               << totalTimeCpu.count() / 1000.0 << " milliseconds" << std::endl;
-        stream << std::endl;
 
-        stream.flags(fmt);
+        std::cout << "Performance counters are saved to : " << filename << std::endl;
+        std::cout << "Total time: " << std::fixed << std::setprecision(3) << totalTime.count() / 1000.0
+                  << " milliseconds" << std::endl;
+        std::cout << "Total CPU time: " << std::fixed << std::setprecision(3) << totalTimeCpu.count() / 1000.0
+                  << " milliseconds" << std::endl;
+
     }
-
 };
 
 DecodedResults LLMPipeline::generate(
