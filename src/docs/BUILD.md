@@ -43,11 +43,11 @@ OpenVINO GenAI can be built as an extra module during the OpenVINO build process
 1. Clone OpenVINO and OpenVINO GenAI repositories:
     ```sh
     git clone --recursive https://github.com/openvinotoolkit/openvino.git
-    git clone --recursive https://github.com/openvinotoolkit/openvino_genai.git
+    git clone --recursive https://github.com/openvinotoolkit/openvino.genai.git
     ```
 2. Configure CMake with OpenVINO extra modules:
     ```sh
-    cmake -DOPENVINO_EXTRA_MODULES=./openvino_genai -DCPACK_ARCHIVE_COMPONENT_INSTALL=OFF -S ./openvino -B ./build
+    cmake -DOPENVINO_EXTRA_MODULES=./openvino.genai -DCPACK_ARCHIVE_COMPONENT_INSTALL=OFF -S ./openvino -B ./build
     ```
 3. Build OpenVINO archive with GenAI:
     ```sh
@@ -61,7 +61,7 @@ Follow the OpenVINO [build instructions](https://github.com/openvinotoolkit/open
 
 1. Build and install OpenVINO from sources following the [instructions](https://github.com/openvinotoolkit/openvino/wiki#how-to-build).  
 The path to the OpenVINO install directory is referred as `<INSTALL_DIR>` throughout the document.
-2. Clone OpenVINO GenAI repository and init submodules:
+2. Clone OpenVINO GenAI repository and init submodules in VS 2019 Admin command prompt:
     ```sh
     git clone --recursive https://github.com/openvinotoolkit/openvino.genai.git
     cd openvino.genai
@@ -119,7 +119,7 @@ The path to the OpenVINO install directory is referred as `<INSTALL_DIR>` throug
 
 4. Build the project:
     ```sh
-    cmake -DCMAKE_BUILD_TYPE=Release -S ./ -B ./build/
+    cmake -G "Visual Studio 17 2019" -DCMAKE_BUILD_TYPE=Release -S ./ -B ./build/
     cmake --build ./build/ --config Release -j
     ```
 
@@ -140,25 +140,25 @@ The path to the OpenVINO install directory is referred as `<INSTALL_DIR>` throug
     Linux:
     ```sh
     export PYTHONPATH=<GENAI_ROOT_DIR>/build/:$PYTHONPATH
-    export LD_LIBRARY_PATH=<GENAI_ROOT_DIR>/build/openvino_genai/:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=<GENAI_ROOT_DIR>/build/openvino.genai/:$LD_LIBRARY_PATH
     ```
 
     macOS:
     ```sh
     export PYTHONPATH=<GENAI_ROOT_DIR>/build:$PYTHONPATH
-    export DYLD_LIBRARY_PATH=<GENAI_ROOT_DIR>/build/openvino_genai:$DYLD_LIBRARY_PATH
+    export DYLD_LIBRARY_PATH=<GENAI_ROOT_DIR>/build/openvino.genai:$DYLD_LIBRARY_PATH
     ```
 
     Windows Command Prompt:
     ```cmd
     set PYTHONPATH=<GENAI_ROOT_DIR>\build;%PYTHONPATH%
-    set PATH=<GENAI_ROOT_DIR>\build\openvino_genai;%PATH%
+    set PATH=<GENAI_ROOT_DIR>\build\openvino.genai;%PATH%
     ```
 
     Windows PowerShell:
     ```sh
     $env:PYTHONPATH = "<GENAI_ROOT_DIR>\build;$env:PYTHONPATH"
-    $env:PATH = "<GENAI_ROOT_DIR>\build\openvino_genai;$env:PATH"
+    $env:PATH = "<GENAI_ROOT_DIR>\build\openvino.genai;$env:PATH"
     ```
 
 To optimize the package size, you can reduce the ICU (International Components for Unicode) data size when OpenVINO Tokenizers are built as a submodule of OpenVINO GenAI.
