@@ -64,6 +64,7 @@ add_subdirectory(thirdparty)
 add_subdirectory(src)
 add_subdirectory(samples)
 add_subdirectory(tests/cpp)
+add_subdirectory(scripts)
 
 install(FILES LICENSE DESTINATION docs/licensing COMPONENT licensing_genai RENAME LICENSE-GENAI)
 install(FILES third-party-programs.txt DESTINATION docs/licensing COMPONENT licensing_genai RENAME third-party-programs-genai.txt)

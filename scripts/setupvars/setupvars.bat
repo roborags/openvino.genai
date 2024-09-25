@@ -16,7 +16,7 @@ if exist "%INTEL_OPENVINO_DIR%\setupvars.bat" (
 )
 
 :: OpenVINO_Gen AI runtime
-set "OPENVINO_LIB_PATHS=%INTEL_OPENVINO_GENAI_DIR%\runtime\bin\intel64\Release;%INTEL_OPENVINO_GENAI_DIR%samples\cpp\samples_cpp_bin;%OPENVINO_LIB_PATHS%"
+set "OPENVINO_LIB_PATHS=%INTEL_OPENVINO_GENAI_DIR%\runtime\bin\intel64\Release;%INTEL_OPENVINO_GENAI_DIR%samples\cpp_bin;%OPENVINO_LIB_PATHS%"
 
 :: Add libs dirs to the PATH
 set "PATH=%OPENVINO_LIB_PATHS%;%PATH%"

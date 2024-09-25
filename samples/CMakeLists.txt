@@ -39,3 +39,14 @@ install(DIRECTORY
             python/benchmark_genai
         DESTINATION samples/python COMPONENT cpp_samples_genai
         USE_SOURCE_PERMISSIONS)
+
+if(WIN32)
+
+    file(GLOB_RECURSE EXE_FILES ${CMAKE_CURRENT_BINARY_DIR}/cpp/*.exe)
+
+    install(FILES ${EXE_FILES}
+        DESTINATION samples/cpp_bin
+        COMPONENT cpp_samples_genai_build)
+
+endif()
+

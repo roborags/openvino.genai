@@ -1,11 +1,9 @@
 # install setupvars
 
-ov_cpack_add_component(${OV_CPACK_COMP_SETUPVARS} HIDDEN)
-
 if(UNIX)
-    set(_setupvars_files "${CMAKE_CURRENT_SOURCE_DIR}/setupvars/setupvars.sh")
+    # setupvars.sh for UNIX builds
+    install(FILES setupvars/setupvars.sh DESTINATION .)
 elseif(WIN32)
-    # setupvars.bat
-    set(_setupvars_file "setupvars/setupvars.bat")
-    set(_setupvars_files "${CMAKE_CURRENT_SOURCE_DIR}/${_setupvars_file}")
+    # setupvars.bat for Windows builds
+    install(FILES setupvars/setupvars.bat DESTINATION .)
 endif()
