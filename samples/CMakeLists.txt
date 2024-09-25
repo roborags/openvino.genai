@@ -26,7 +26,7 @@ install(DIRECTORY
             # Don't install continuous_batching_accuracy and continuous_batching_benchmark because they depend on json.
             cpp/whisper_speech_recognition
             cpp/stable_diffusion
-			cpp/benchmark_genai
+            cpp/benchmark_genai
         DESTINATION samples/cpp COMPONENT cpp_samples_genai)
 
 install(DIRECTORY
@@ -36,6 +36,6 @@ install(DIRECTORY
             python/multinomial_causal_lm
             python/whisper_speech_recognition
             # python/stable_diffusion
-			python/benchmark_genai
+            python/benchmark_genai
         DESTINATION samples/python COMPONENT cpp_samples_genai
         USE_SOURCE_PERMISSIONS)
